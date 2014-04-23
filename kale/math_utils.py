@@ -1,3 +1,4 @@
+from collections import Counter
 from numpy import asarray, cumsum, log, log2, exp, searchsorted, sqrt
 from numpy.random import uniform
 from scipy.spatial.distance import euclidean
@@ -97,7 +98,7 @@ def entropy(p, normalized=True):
     if not normalized:
         p /= p.sum()
 
-    return (p * log2(p)).sum()
+    return -(p * log2(p)).sum()
 
 
 def kl(p, q, normalized=True):
@@ -177,3 +178,42 @@ def hellinger(p, q, normalized=True):
         q /= q.sum()
 
     return euclidean(sqrt(p), sqrt(q)) / sqrt(2)
+
+
+def vi(y, z):
+    """
+    Returns the variation of information (in bits) between two
+    partitions (clusterings) of n data points. The maximum attainable
+    value is log_2(n) bits. For example, vi(y=zeros(8, dtype=int),
+    z=xrange(8)) will return a value of 3.0.
+
+    y -- first partition
+    z -- second partition
+    """
+
+    assert len(y) == len(z)
+
+    D = 1.0 * len(y)
+
+    vi = 0.0
+
+    p_y = Counter(y)
+
+    for i in p_y.keys():
+        p_y[i] /= D
+        vi -= p_y[i] * log2(p_y[i])
+
+    p_z = Counter(z)
+
+    for j in p_z.keys():
+        p_z[j] /= D
+        vi -= p_z[j] * log2(p_z[j])
+
+    p_yz = Counter(zip(y, z))
+
+    for i, j in p_yz.keys():
+        p_yz[(i, j)] /= D
+        vi -= (2 * p_yz[(i, j)] *
+               log2(p_yz[(i, j)] / (p_y[i] * p_z[j])))
+
+    return vi
