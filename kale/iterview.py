@@ -86,7 +86,9 @@ def iterview(x, inc=10, length=None):
     """
 
     start = time.time()
-    length = length or len(x)
+
+    if length is None:
+        length = len(x)
 
     if length == 0:
         raise StopIteration
